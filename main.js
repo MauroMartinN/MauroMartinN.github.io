@@ -23,7 +23,22 @@ async function postChessApi(data = {}) {
 let ajedrez = Array.from(Array(8), () => new Array(8).fill(null));
 let turno = "blanco"; 
 let listaMovimientos=[];
+let comprobarJaque=[];
 
+function cambiarColorTablero() {
+    let table = document.getElementById("table");
+    for (let i = 0; i < 8; i++) {
+        for (let j = 0; j < 8; j++) {
+            if ((i + j) % 2 === 0) {
+                table.rows[i].cells[j].style.backgroundColor = "#FFFFE0"; // Blanco huevo
+            } else {
+                table.rows[i].cells[j].style.backgroundColor = "#F0D9B5"; // Color original
+            }
+        }
+    }
+}
+
+cambiarColorTablero();
 
 function agregarMovimiento(origen, destino) {
     let x=["a","b","c","d","e","f","g","h"];
@@ -171,6 +186,10 @@ function addEventListeners() {
 }
 
 function mover(img) {
+    if (chess.game_over()) {
+        alert("El juego ha terminado");
+        return;
+    }
     let id = img.id;
     let x = parseInt(id[0]);
     let y = parseInt(id[1]);
@@ -180,10 +199,7 @@ function mover(img) {
     if (turno=="blanco") {
         mov = pieza.getPosiblesMovimientos(ajedrez);
     }
-    else {
-        return
-        mov = pieza.getPosiblesMovimientos(ajedrez);
-    }
+    else return;
     if (mov.length == 0) {
         return;
     }
@@ -228,6 +244,9 @@ function mover2(img, arrayGrises) {
 }
 
 function mover3(element, img, arrayGrises) {
+    comprobarJaque.push(element.id);
+    
+
     let id = element.id;
     let x = parseInt(id[0]);
     let y = parseInt(id[1]);
@@ -235,9 +254,14 @@ function mover3(element, img, arrayGrises) {
     let oldX = parseInt(oldId[0]);
     let oldY = parseInt(oldId[1]);
     let pieza = ajedrez[oldX][oldY];
+    if (ajedrez[oldX][oldY]==null) {
+        alert("Ganan Negras");
+        window.location.reload();
+        return;
+    }
+
     ajedrez[oldX][oldY] = null;
     ajedrez[x][y] = pieza;
-
     agregarMovimiento(oldId,id);
 
     let src = img.getAttribute("src");
@@ -257,21 +281,28 @@ function mover3(element, img, arrayGrises) {
         document.getElementById(id).removeEventListener("click", moverHandler2);
     });
 
+    if (comprobarJaque.length>=2) {
+        let ultM=comprobarJaque[comprobarJaque.length-1];
+        let penM=comprobarJaque[comprobarJaque.length-2];
+        let pieza1=ajedrez[ultM[0]][ultM[1]];
+        let pieza2=ajedrez[penM[0]][penM[1]];
+        if (pieza1.getColor()==pieza2.getColor() && pieza1!=pieza2) {
+            alert("Ganan Negras")
+            window.location.reload();
+            return;
+        }
+    }
     turno = (turno === "blanco") ? "negro" : "blanco";
     updateTurno();
     
     addEventListeners();
 }
 
-function mover4 (origen, destino) {
-    mostrarMovimientos();
-    let piezaO=document.getElementById(origen);
-}
-
 function updateTurno() {
     document.getElementById("turno").textContent = "Turno de: "+turno.toUpperCase();
     mostrarMovimientos();
     let fen1 = chess.fen();
+    
     let movimiento="";
     postChessApi({ fen: fen1 }).then((data) => {
         if (data.type=="error") {
