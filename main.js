@@ -69,7 +69,8 @@ function agregarMovimiento(origen, destino) {
         destino: destino,
     });
 
-    chess.move({ from: origen, to: destino });
+    let move=chess.move({ from: origen, to: destino });
+    console.log(move);
 }
 
 function mostrarMovimientos() {
@@ -187,7 +188,7 @@ function addEventListeners() {
 
 function mover(img) {
     if (chess.game_over()) {
-        alert("El juego ha terminado");
+        alert("Jaque mate, el juego ha terminado");
         return;
     }
     let id = img.id;
@@ -245,7 +246,6 @@ function mover2(img, arrayGrises) {
 
 function mover3(element, img, arrayGrises) {
     comprobarJaque.push(element.id);
-    
 
     let id = element.id;
     let x = parseInt(id[0]);
@@ -292,10 +292,39 @@ function mover3(element, img, arrayGrises) {
             return;
         }
     }
+
     turno = (turno === "blanco") ? "negro" : "blanco";
     updateTurno();
     
     addEventListeners();
+}
+
+function enroque(movimiento) {
+    let x = ["a", "b", "c", "d", "e", "f", "g", "h"];
+    let posI=movimiento[0];
+    let posF=movimiento[2];
+    if (x.indexOf(posI)>x.indexOf(posF)) {
+        let torreTemporal=ajedrez[0][0];
+        ajedrez[0][2]=torreTemporal;
+        let TorreV=document.getElementById("00");
+        let nuevaT=document.getElementById("02")
+        nuevaT.src=TorreV.src;
+        nuevaT.clase="torre";
+        TorreV.src="piezas/base.png";
+        TorreV.clase="vacio";
+    } else {
+        let torreTemporal=ajedrez[0][7];
+        ajedrez[0][5]=torreTemporal;
+        let TorreV=document.getElementById("07")
+        let nuevaT=document.getElementById("05")
+        nuevaT.src=TorreV.src;
+        nuevaT.clase="torre";
+        TorreV.src="piezas/base.png";
+        TorreV.clase="vacio";
+    }
+
+    console.log(movimiento);
+
 }
 
 function updateTurno() {
@@ -312,12 +341,19 @@ function updateTurno() {
             postChessApi({ fen: fenModificado }).then((data) => {
                 movimiento=data.move;
                 console.log(data)
+                if (data.isCastling) {
+                    enroque(movimiento);
+                }
             });
         }
         else {
             console.log(data);
             movimiento=data.move;
+            if (data.isCastling) {
+                enroque(movimiento);
+            }
         }
+        
     });
     if (turno == "negro") {
         (async () => {
@@ -351,7 +387,7 @@ function updateTurno() {
                 }
             }
 
-
+            
             let nueva=document.getElementById(destinoTransformado);
             let vieja=document.getElementById(origenTransformado);
             let arrayVacio=[];
