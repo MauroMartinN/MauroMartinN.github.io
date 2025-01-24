@@ -30,9 +30,9 @@ function cambiarColorTablero() {
     for (let i = 0; i < 8; i++) {
         for (let j = 0; j < 8; j++) {
             if ((i + j) % 2 === 0) {
-                table.rows[i].cells[j].style.backgroundColor = "#FFFFE0"; // Blanco huevo
+                table.rows[i].cells[j].style.backgroundColor = "#FFFFE0"; 
             } else {
-                table.rows[i].cells[j].style.backgroundColor = "#F0D9B5"; // Color original
+                table.rows[i].cells[j].style.backgroundColor = "#F0D9B5";
             }
         }
     }
@@ -68,9 +68,7 @@ function agregarMovimiento(origen, destino) {
         origen: origen,
         destino: destino,
     });
-
-    let move=chess.move({ from: origen, to: destino });
-    console.log(move);
+    chess.move({ from: origen, to: destino });
 }
 
 function mostrarMovimientos() {
@@ -123,19 +121,23 @@ function cargarPiezas() {
         let vacio1 = document.createElement("img");
         vacio1.setAttribute("clase", "vacio");
         vacio1.setAttribute("src", "piezas/base.png");
+        vacio1.style.opacity = "0.3";
         table.rows[2].cells[i].appendChild(vacio1);
 
         let vacio2 = document.createElement("img");
+        vacio2.style.opacity = "0.3";
         vacio2.setAttribute("clase", "vacio");
         vacio2.setAttribute("src", "piezas/base.png");
         table.rows[3].cells[i].appendChild(vacio2);
 
         let vacio3 = document.createElement("img");
+        vacio3.style.opacity = "0.3";
         vacio3.setAttribute("clase", "vacio");
         vacio3.setAttribute("src", "piezas/base.png");
         table.rows[4].cells[i].appendChild(vacio3);
 
         let vacio4 = document.createElement("img");
+        vacio4.style.opacity = "0.3";
         vacio4.setAttribute("clase", "vacio");
         vacio4.setAttribute("src", "piezas/base.png");
         table.rows[5].cells[i].appendChild(vacio4);
@@ -147,11 +149,11 @@ function cargarPiezas() {
 
         let peon2 = document.createElement("img");
         peon2.setAttribute("clase", "peon2");
-        peon2.setAttribute("src", "piezas/peon.png");
+        peon2.setAttribute("src", "piezas/peon2.png");
         table.rows[1].cells[i].appendChild(peon2);
 
         let piezas1 = ["torre", "caballo", "alfil", "reina", "rey", "alfil", "caballo", "torre"];
-        let piezas2 = ["torre", "caballo", "alfil", "reina", "rey", "alfil", "caballo", "torre"];
+        let piezas2 = ["torre2", "caballo2", "alfil2", "reina2", "rey2", "alfil2", "caballo2", "torre2"];
 
         let pieza1 = document.createElement("img");
         pieza1.setAttribute("clase", piezas1[i]);
@@ -187,10 +189,6 @@ function addEventListeners() {
 }
 
 function mover(img) {
-    if (chess.game_over()) {
-        alert("Jaque mate, el juego ha terminado");
-        return;
-    }
     let id = img.id;
     let x = parseInt(id[0]);
     let y = parseInt(id[1]);
@@ -245,6 +243,30 @@ function mover2(img, arrayGrises) {
 }
 
 function mover3(element, img, arrayGrises) {
+
+    let startX = img.getBoundingClientRect().left;
+    let startY = img.getBoundingClientRect().top;
+    let endX = element.getBoundingClientRect().left;
+    let endY = element.getBoundingClientRect().top;
+    
+    let deltaX = endX - startX;
+    let deltaY = endY - startY;
+    
+    img.style.willChange = "transform";
+    img.style.transition = "transform 0.5s ease";
+    img.style.transform = `translate3d(${deltaX}px, ${deltaY}px, 0)`;
+    
+    setTimeout(() => {
+        img.style.transition = "";
+        img.style.transform = "";
+        element.style.transition = "";
+        element.style.transform = "";
+        element.style.left = `${endX}px`;
+        element.style.top = `${endY}px`;
+    }, 500);
+    
+    setTimeout(() => {
+
     comprobarJaque.push(element.id);
 
     let id = element.id;
@@ -272,6 +294,8 @@ function mover3(element, img, arrayGrises) {
 
     oldImg.setAttribute("src", "piezas/base.png");
     oldImg.setAttribute("clase", "vacio");
+    oldImg.style.opacity="0.3";
+    element.style.opacity="1";
     element.setAttribute("src", src);
     element.setAttribute("clase", clase);
     ajedrez[x][y].setId(id);
@@ -293,10 +317,16 @@ function mover3(element, img, arrayGrises) {
         }
     }
 
+    if (chess.game_over()) {
+        alert("Jaque mate, el juego ha terminado");
+        return;
+    }
+
     turno = (turno === "blanco") ? "negro" : "blanco";
     updateTurno();
     
     addEventListeners();
+    }, 505);
 }
 
 function enroque(movimiento) {
@@ -322,9 +352,6 @@ function enroque(movimiento) {
         TorreV.src="piezas/base.png";
         TorreV.clase="vacio";
     }
-
-    console.log(movimiento);
-
 }
 
 function updateTurno() {
